@@ -1,0 +1,113 @@
+/* styles.css */
+.navbar-default {
+  background-color: white;
+  border-color: white;
+}
+
+.navbar-default .navbar-brand {
+  color: black;
+}
+
+.navbar-default .navbar-nav > li > a {
+  color: #4CAF50;
+}
+
+.main-title {
+  color: black;
+  font-size: 24px;
+  font-weight: bold;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+#download_data {
+  background-color: #ccc; 
+  color: white; /* White text */
+  border: none; /* Remove border */
+  padding: 10px 20px; /* Add some padding */
+  text-align: center; /* Center the text */
+  text-decoration: none; /* Remove underline */
+  display: inline-block; /* Get it to display inline */
+  font-size: 16px; /* Increase font size */
+  margin: 4px 2px; /* Add some margin */
+  cursor: pointer; /* Pointer/hand icon */
+  border-radius: 12px; /* Rounded corners */
+}
+
+#download_data:hover {
+  background-color: #FF6C30; /*  orange on hover */
+}
+
+/* Resetting select input box to default */
+.select-input-custom select {
+  background-color: white; /* Default white background */
+  color: black; /* Default black text */
+  border: 1px solid #ccc; /* Default light gray border */
+  padding: 10px; /* Add some padding */
+  border-radius: 4px; /* Rounded corners */
+  font-size: 16px; /* Increase font size */
+  width: 100%; /* Full width */
+  box-sizing: border-box; /* Include padding in width */
+}
+
+
+#box_2020 {
+  background-color: #ccc; 
+  color: white; /* White text */
+  border: none; /* Remove border */
+  padding: 10px 20px; /* Add some padding */
+  text-align: center; /* Center the text */
+  text-decoration: none; /* Remove underline */
+  display: inline-block; /* Get it to display inline */
+  font-size: 16px; /* Increase font size */
+  margin: 4px 2px; /* Add some margin */
+  cursor: pointer; /* Pointer/hand icon */
+  border-radius: 12px; /* Rounded corners */
+  background-color: #3c8dbc; 
+}
+
+#box_2021 {
+  background-color: #ccc; 
+  color: white; /* White text */
+  border: none; /* Remove border */
+  padding: 10px 20px; /* Add some padding */
+  text-align: center; /* Center the text */
+  text-decoration: none; /* Remove underline */
+  display: inline-block; /* Get it to display inline */
+  font-size: 16px; /* Increase font size */
+  margin: 4px 2px; /* Add some margin */
+  cursor: pointer; /* Pointer/hand icon */
+  border-radius: 12px; /* Rounded corners */
+  background-color: #00a65a; 
+}
+
+#box_2022 {
+  background-color: #ccc; 
+  color: white; /* White text */
+  border: none; /* Remove border */
+  padding: 10px 20px; /* Add some padding */
+  text-align: center; /* Center the text */
+  text-decoration: none; /* Remove underline */
+  display: inline-block; /* Get it to display inline */
+  font-size: 16px; /* Increase font size */
+  margin: 4px 2px; /* Add some margin */
+  cursor: pointer; /* Pointer/hand icon */
+  border-radius: 12px; /* Rounded corners */
+  background-color: #dd4b39; 
+}
+
+#box_2023 {
+  background-color: #ccc; 
+  color: white; /* White text */
+  border: none; /* Remove border */
+  padding: 10px 20px; /* Add some padding */
+  text-align: center; /* Center the text */
+  text-decoration: none; /* Remove underline */
+  display: inline-block; /* Get it to display inline */
+  font-size: 16px; /* Increase font size */
+  margin: 4px 2px; /* Add some margin */
+  cursor: pointer; /* Pointer/hand icon */
+  border-radius: 12px; /* Rounded corners */
+  background-color: #f39c12; 
+}
+
