@@ -1,0 +1,12 @@
+name: school_districts_debt
+title: school_districts_debt
+username: govfin
+account: govfin
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 12408239
+bundleId: 8946260
+url: https://govfin.shinyapps.io/school_districts_debt/
+version: 1
+asMultiple: FALSE
+asStatic: FALSE
