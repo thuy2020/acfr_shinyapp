@@ -26,7 +26,8 @@ all_school_districts <- readRDS("all_school_districts.RDS")
   
 #d %>% colnames()
 
-state_tot <- d %>% filter(state.name %in% c("California", "Ohio")) %>% 
+state_tot <- d %>% #filter(state.name %in% c("California", "Ohio")) %>% 
+  arrange(state.name) %>% 
   select(2:revenues) %>% 
   group_by(state.name, year) %>% 
   mutate(across(5:revenues, list(tot = ~ sum(., na.rm = TRUE)), .names = "sum_{col}")) %>% 
