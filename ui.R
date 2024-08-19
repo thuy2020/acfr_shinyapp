@@ -25,8 +25,8 @@ shinyUI(navbarPage(
                        fluidRow(
                            valueBoxOutput("box_2020", width = 2.5),
                            valueBoxOutput("box_2021", width = 2.5),
-                           valueBoxOutput("box_2022", width = 2.5),
-                           valueBoxOutput("box_2023", width = 2.5)
+                           valueBoxOutput("box_2022", width = 2.5)
+                          # valueBoxOutput("box_2023", width = 2.5)
                        ),
  
                        DTOutput("totals_table"),

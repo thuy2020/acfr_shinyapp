@@ -19,13 +19,19 @@ shinyServer(function(input, output, session) {
     school_districts <- all_school_districts %>%
       filter(state.name == input$selected_state) %>%
       pull(name)
-    updateSelectInput(session, "selected_district", 
+    updateSelectizeInput(session, "selected_district", 
                       choices = c("All", school_districts))
   })
   
   output$school_district_ui <- renderUI({
     tags$div(class = "select-input-custom",
-            selectInput("selected_district", "Select School District:", choices = NULL)
+             selectizeInput("selected_district", "Select School District:", 
+                        choices = NULL,
+                        options = list(
+                          placeholder = 'Start typing to search...',
+                          maxOptions = 1000  # Adjust the number of options to display
+                        )
+                        )
             )
   })
   
@@ -47,40 +53,62 @@ shinyServer(function(input, output, session) {
               options = list(pageLength = 10, order = list(list(1, 'asc'))))
   })
   
+  # net_pension_liability_allyears
+  net_pension_liability_allyears <- reactive({
+    req(input$selected_state)
+    valuebox_data %>%
+      filter(state.name == input$selected_state, category == "net_pension_liability") %>%
+      pull(allyears)
+  })
   
-  # Render value boxes
   output$box_2020 <- renderValueBox({
     valueBox(
-      value = "12345",,
-      subtitle = "Total Liabilities",
+      value = net_pension_liability_allyears(),  
+      subtitle = "NPL in 4 years",
       icon = icon("chart-line")
     )
   })
   
+  # net_opeb_liability all years
+  
+  net_opeb_liability_allyears <- reactive({
+    req(input$selected_state)
+    valuebox_data %>%
+      filter(state.name == input$selected_state, category == "net_opeb_liability") %>%
+      pull(allyears)
+  })
   output$box_2021 <- renderValueBox({
     valueBox(
-      value = "12345",
-      subtitle = "Total Assets",
+      value = net_opeb_liability_allyears(),
+      subtitle = "OPEB Liability in 4 years",
       icon = icon("briefcase")
     )
   })
   
+  # total_liabilities all years
+  
+  total_liabilities_allyears <- reactive({
+    req(input$selected_state)
+    valuebox_data %>%
+      filter(state.name == input$selected_state, category == "total_liabilities") %>%
+      pull(allyears)
+  })
+  
   output$box_2022 <- renderValueBox({
     valueBox(
-      value = "12345",
-      subtitle = "Total Revenues",
+      value = total_liabilities_allyears(),
+      subtitle = "Total Liabilities in 4 years",
       icon = icon("money-bill")
     )
   })
   
-  
-  output$box_2023 <- renderValueBox({
-    valueBox(
-      value = "12345",
-      subtitle = "Total students",
-      icon = icon("users")
-    )
-  })
+  # output$box_2023 <- renderValueBox({
+  #   valueBox(
+  #     value = "12345",
+  #     subtitle = "Total students",
+  #     icon = icon("users")
+  #   )
+  # })
   
   
   # Download handler
