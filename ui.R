@@ -31,8 +31,12 @@ shinyUI(navbarPage(
  
                        DTOutput("totals_table"),
                        tags$div(style = "margin-top: 20px;", 
-                   
                                 downloadButton("download_data", "Download")
+                       ),
+                       tabsetPanel(
+                           tabPanel("Net Pension Liability", plotlyOutput("net_pension_plot")),
+                           tabPanel("Net OPEB Liability", plotlyOutput("opeb_plot")),
+                           tabPanel("Total Liabilities", plotlyOutput("total_liabilities_plot"))
                        )
                    )
                )

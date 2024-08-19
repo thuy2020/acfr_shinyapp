@@ -42,7 +42,8 @@ shinyServer(function(input, output, session) {
       state_tot %>% filter(state.name == input$selected_state)
     } else{
       all_school_districts %>% filter(state.name == input$selected_state, 
-                                      name == input$selected_district)
+                                      name == input$selected_district) %>% 
+        select(-c(name, enrollment_22))
     }
    
   })
@@ -64,7 +65,7 @@ shinyServer(function(input, output, session) {
   output$box_2020 <- renderValueBox({
     valueBox(
       value = net_pension_liability_allyears(),  
-      subtitle = "NPL in 4 years",
+      subtitle = "NPL 2020-22",
       icon = icon("chart-line")
     )
   })
@@ -80,7 +81,7 @@ shinyServer(function(input, output, session) {
   output$box_2021 <- renderValueBox({
     valueBox(
       value = net_opeb_liability_allyears(),
-      subtitle = "OPEB Liability in 4 years",
+      subtitle = "OPEB Liability 2020-22",
       icon = icon("briefcase")
     )
   })
@@ -97,19 +98,11 @@ shinyServer(function(input, output, session) {
   output$box_2022 <- renderValueBox({
     valueBox(
       value = total_liabilities_allyears(),
-      subtitle = "Total Liabilities in 4 years",
+      subtitle = "Total Liabilities 2020-22",
       icon = icon("money-bill")
     )
   })
-  
-  # output$box_2023 <- renderValueBox({
-  #   valueBox(
-  #     value = "12345",
-  #     subtitle = "Total students",
-  #     icon = icon("users")
-  #   )
-  # })
-  
+
   
   # Download handler
   output$download_data <- downloadHandler(
@@ -121,5 +114,69 @@ shinyServer(function(input, output, session) {
     }
   )
   
+  
+  # Render net_pension_plot
+  output$net_pension_plot <- renderPlotly({
+    req(input$selected_state)
+    
+    # Filter the data based on selected state
+    filtered_data <- top10_chart_data %>%
+      filter(state.name == input$selected_state) %>%
+      filter(category == "net_pension_liability") %>%
+      select(name, `2022`)
+    
+    p <- filtered_data %>%
+      ggplot(aes(fct_reorder(name, `2022`), `2022`)) +
+      geom_col(fill = "#55C5E6") +
+      coord_flip() +
+      scale_y_continuous(labels = comma) +
+      labs(x = "", y = "", 
+           title = paste("Top 10 School Districts in ", input$selected_state, "in 2022")) +
+      theme_minimal()
+    
+    ggplotly(p)
+  })
+  
+  # Render the Net OPEB Liability plot
+  output$opeb_plot <- renderPlotly({
+    req(input$selected_state)
+    
+    filtered_data <- top10_chart_data %>%
+      filter(state.name == input$selected_state) %>%
+      filter(category == "net_opeb_liability") %>%
+      select(name, `2022`)
+    
+    p <- filtered_data %>%
+      ggplot(aes(fct_reorder(name, `2022`), `2022`)) +
+      geom_col(fill = "#3690CC") +
+      coord_flip() +
+      scale_y_continuous(labels = comma) +
+      labs(x = "", y = "", 
+           title = paste("Top 10 School Districts in ", input$selected_state, "in 2022")) +
+      theme_minimal()
+    
+    ggplotly(p)
+  })
+  
+  # Render the Total Liabilities plot
+  output$total_liabilities_plot <- renderPlotly({
+    req(input$selected_state)
+    
+    filtered_data <- top10_chart_data %>%
+      filter(state.name == input$selected_state) %>%
+      filter(category == "total_liabilities") %>%
+      select(name, `2022`)
+    
+    p <- filtered_data %>%
+      ggplot(aes(fct_reorder(name, `2022`), `2022`)) +
+      geom_col(fill = "#125E9B") +
+      coord_flip() +
+      scale_y_continuous(labels = comma) +
+      labs(x = "", y = "", 
+           title = paste("Top 10 School Districts in ", input$selected_state, "in 2022")) +
+      theme_minimal()
+    
+    ggplotly(p)
+  })
 
 })
