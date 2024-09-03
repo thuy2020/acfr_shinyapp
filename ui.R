@@ -1,6 +1,7 @@
 library(shiny)
 library(DT)
 library(shinydashboard)
+library(plotly)
 
 # Define the UI
 shinyUI(navbarPage(
@@ -41,5 +42,17 @@ shinyUI(navbarPage(
                    )
                )
         )
+    ),
+    # New section for Top 100 School Districts table
+    fluidRow(
+        column(12,
+               tags$h3("Top 100 School Districts"),  # Add a header for the new section
+               DTOutput("top100_table")  # Placeholder for the Top 100 table
+        )
     )
+    
+    
+    
+    
+
 ))

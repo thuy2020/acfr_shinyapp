@@ -12,13 +12,17 @@ state_tot <- readRDS("state_tot.RDS")
 
 data %>% 
   filter(category %in% c("net_pension_liability", "net_opeb_liability", "total_liabilities")) %>% 
-  select(-c(name, enrollment_22, `2023`)) %>% 
-  pivot_longer(3:5, names_to = "year", values_to = "value") %>% select(-year) %>% distinct() %>% 
-  group_by(state.name, category) %>%
-  summarise(allyears = sum(value, na.rm = TRUE)) %>% 
-  mutate(across(where(is.numeric), ~ comma(.))) %>% saveRDS("valuebox_data.RDS")
+  select(state.name, category, `2022`) %>% distinct() %>% drop_na() %>% 
+  
+  
+  #pivot_longer(3:5, names_to = "year", values_to = "value") %>% select(-year) %>% distinct() %>% 
+  #group_by(state.name, category) %>%
+ # summarise(allyears = sum(value, na.rm = TRUE)) %>% 
+  mutate(across(where(is.numeric), ~ comma(.))) %>% 
+  saveRDS("valuebox_data.RDS")
 
 valuebox_data <- readRDS("valuebox_data.RDS")
+
 
 ### Save to an RDS object to reduce run time 
 # all_school_districts <- data %>%
@@ -61,16 +65,11 @@ top10_chart_data <- all_school_distrcts_raw %>%
   filter(!state.name %in% c("Guam", "Puerto Rico")) %>% 
   mutate(name = str_to_title(name))
 
-# top10_chart_data %>% 
-#   filter(state.name == "California") %>% 
-#   filter(category == "net_pension_liability") %>%  
-#   select(name, 2020) %>% 
-#   ggplot(aes(fct_reorder(name, 2020), 2020)) +
-#   geom_col(fill = "steelblue")+
-#   coord_flip()+
-#   scale_y_continuous(labels = comma)+
-#   labs(x = "",
-#        y = "")+
-#   theme_minimal() -> top10_chart
-# 
-# top10_chart_plotly <- ggplotly(top10_chart)
+# top 100 sd
+
+top100_sd <- read.csv("data/top100_sd.csv") %>% 
+  select(state.name, name, year, 
+         net_pension_liability, net_opeb_liability, total_liabilities,
+         enrollment_20, enrollment_21, enrollment_22) 
+  
+  

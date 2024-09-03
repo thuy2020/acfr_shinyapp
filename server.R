@@ -2,6 +2,7 @@ library(shiny)
 library(dplyr)
 library(DT)
 library(shinydashboard)
+library(plotly)
 source("charts.R")  
 
 # Define the server logic
@@ -20,7 +21,8 @@ shinyServer(function(input, output, session) {
       filter(state.name == input$selected_state) %>%
       pull(name)
     updateSelectizeInput(session, "selected_district", 
-                      choices = c("All", school_districts))
+                      choices = c("All", school_districts),
+                      server = TRUE)
   })
   
   output$school_district_ui <- renderUI({
@@ -58,14 +60,15 @@ shinyServer(function(input, output, session) {
   net_pension_liability_allyears <- reactive({
     req(input$selected_state)
     valuebox_data %>%
-      filter(state.name == input$selected_state, category == "net_pension_liability") %>%
-      pull(allyears)
+      filter(state.name == input$selected_state, 
+             category == "net_pension_liability") %>%
+      pull(`2022`)
   })
   
   output$box_2020 <- renderValueBox({
     valueBox(
       value = net_pension_liability_allyears(),  
-      subtitle = "NPL 2020-22",
+      subtitle = "NPL 2022",
       icon = icon("chart-line")
     )
   })
@@ -76,12 +79,12 @@ shinyServer(function(input, output, session) {
     req(input$selected_state)
     valuebox_data %>%
       filter(state.name == input$selected_state, category == "net_opeb_liability") %>%
-      pull(allyears)
+      pull(`2022`)
   })
   output$box_2021 <- renderValueBox({
     valueBox(
       value = net_opeb_liability_allyears(),
-      subtitle = "OPEB Liability 2020-22",
+      subtitle = "OPEB Liability 2022",
       icon = icon("briefcase")
     )
   })
@@ -92,13 +95,13 @@ shinyServer(function(input, output, session) {
     req(input$selected_state)
     valuebox_data %>%
       filter(state.name == input$selected_state, category == "total_liabilities") %>%
-      pull(allyears)
+      pull(`2022`)
   })
   
   output$box_2022 <- renderValueBox({
     valueBox(
       value = total_liabilities_allyears(),
-      subtitle = "Total Liabilities 2020-22",
+      subtitle = "Total Liabilities 2022",
       icon = icon("money-bill")
     )
   })
@@ -158,7 +161,7 @@ shinyServer(function(input, output, session) {
     ggplotly(p)
   })
   
-  # Render the Total Liabilities plot
+  # Total Liabilities plot
   output$total_liabilities_plot <- renderPlotly({
     req(input$selected_state)
     
@@ -178,5 +181,13 @@ shinyServer(function(input, output, session) {
     
     ggplotly(p)
   })
+  
+  #Top100 sd
+  output$top100_table <- renderDataTable({
+    datatable(top100_sd, 
+              options = list(pageLength = 10, autoWidth = TRUE),  
+              rownames = FALSE)
+  
 
+})
 })
