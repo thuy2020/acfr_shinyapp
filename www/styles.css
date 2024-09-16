@@ -65,64 +65,47 @@
   box-sizing: border-box; /* Include padding in width */
 }
 
-
-#box_2020 {
-  background-color: #ccc; 
-  color: white; /* White text */
-  border: none; /* Remove border */
-  padding: 10px 20px; /* Add some padding */
-  text-align: center; /* Center the text */
-  text-decoration: none; /* Remove underline */
-  display: inline-block; /* Get it to display inline */
-  font-size: 16px; /* Increase font size */
-  margin: 4px 2px; /* Add some margin */
-  cursor: pointer; /* Pointer/hand icon */
-  border-radius: 12px; /* Rounded corners */
-  background-color: #3c8dbc; 
+.custom-pension-box {
+    background-color: #1abc9c; /* Custom background for pension box */
+    color: #fff;
 }
 
-#box_2021 {
-  background-color: #ccc; 
-  color: white; /* White text */
-  border: none; /* Remove border */
-  padding: 10px 20px; /* Add some padding */
-  text-align: center; /* Center the text */
-  text-decoration: none; /* Remove underline */
-  display: inline-block; /* Get it to display inline */
-  font-size: 16px; /* Increase font size */
-  margin: 4px 2px; /* Add some margin */
-  cursor: pointer; /* Pointer/hand icon */
-  border-radius: 12px; /* Rounded corners */
-  background-color: #00a65a; 
+/* Custom style for the entire value box */
+.small-box {
+    background-color: #3498db; /* Change the background color */
+    color: white; /* Change the text color */
+    border-radius: 10px; /* Make the corners rounded */
+    padding: 10px; /* Add padding inside the box */
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2); /* Add a subtle shadow */
+    font-family: 'Arial', sans-serif; /* Change the font family */
 }
 
-#box_2022 {
-  background-color: #ccc; 
-  color: white; /* White text */
-  border: none; /* Remove border */
-  padding: 10px 20px; /* Add some padding */
-  text-align: center; /* Center the text */
-  text-decoration: none; /* Remove underline */
-  display: inline-block; /* Get it to display inline */
-  font-size: 16px; /* Increase font size */
-  margin: 4px 2px; /* Add some margin */
-  cursor: pointer; /* Pointer/hand icon */
-  border-radius: 12px; /* Rounded corners */
-  background-color: #dd4b39; 
+/* Custom style for the value (the number in the box) */
+.small-box h3 {
+    font-size: 28px; /* Change the font size for the main value */
+    font-weight: bold; /* Make the font bold */
+    color: #fff; /* Set the font color */
 }
 
-#box_2023 {
-  background-color: #ccc; 
-  color: white; /* White text */
-  border: none; /* Remove border */
-  padding: 10px 20px; /* Add some padding */
-  text-align: center; /* Center the text */
-  text-decoration: none; /* Remove underline */
-  display: inline-block; /* Get it to display inline */
-  font-size: 16px; /* Increase font size */
-  margin: 4px 2px; /* Add some margin */
-  cursor: pointer; /* Pointer/hand icon */
-  border-radius: 12px; /* Rounded corners */
-  background-color: #f39c12; 
+/* Custom style for the label (description under the number) */
+.small-box p {
+    font-size: 16px; /* Change the font size for the label */
+    font-weight: normal; /* Set the font weight to normal */
+    margin: 0; /* Remove extra margin */
+    color: #f1f1f1; /* Set the label color */
 }
 
+/* Add custom icon styles (optional) */
+.small-box .icon {
+    font-size: 50px; /* Change the icon size */
+    top: -10px; /* Adjust the position */
+    right: 10px; /* Adjust the position */
+    opacity: 0.6; /* Set opacity for the icon */
+    color: #fff; /* Set the icon color */
+}
+
+/* Add hover effect for value box (optional) */
+.small-box:hover {
+    background-color: #2980b9; /* Change background on hover */
+    cursor: pointer; /* Change cursor to pointer on hover */
+}

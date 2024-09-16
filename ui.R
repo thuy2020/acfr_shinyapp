@@ -2,38 +2,57 @@ library(shiny)
 library(DT)
 library(shinydashboard)
 library(plotly)
+library(bs4Dash)
 
 # Define the UI
 shinyUI(navbarPage(
     title = tags$div(
-        tags$img(src = "logo.png", height = "30px", style = "margin-top: -5px; margin-right: 10px;"),
-        span("School Districts Debt", class = "main-title")
+        tags$img(src = "logo.png", height = "30px", 
+                 style = "margin-top: -5px; margin-right: 10px;"),
+        span("Annual Comprehensive Financial Reports by States", class = "main-title")
     ),
     tags$head(
         tags$link(rel = "stylesheet", type = "text/css", href = "styles.css")
     ),
+    
+    # Main Layout
     fluidRow(
         column(12,
                sidebarLayout(
                    sidebarPanel(
+                       # Select inputs for state, entity type, and year
                        tags$div(class = "select-input-custom",
-                                selectInput("selected_state", "Select State:", choices = NULL)
+                                selectInput("selected_state", "Select State:", 
+                                            choices = unique(all_entities$state.name), 
+                                            selected = NULL, multiple = TRUE)
                        ),
-                       uiOutput("school_district_ui")
-                       
+                       tags$div(class = "select-input-custom",
+                                selectInput("selected_entity_type", "Select Entity Type:", 
+                                            choices = unique(all_entities$category), 
+                                            selected = NULL, multiple = TRUE)
+                       ),
+                       tags$div(class = "select-input-custom",
+                                selectInput("selected_year", "Select Year:", 
+                                            choices = unique(all_entities$year), 
+                                            selected = NULL, multiple = TRUE)
+                       )
                    ),
+                   
                    mainPanel(
                        fluidRow(
-                           valueBoxOutput("box_2020", width = 2.5),
-                           valueBoxOutput("box_2021", width = 2.5),
-                           valueBoxOutput("box_2022", width = 2.5)
-                          # valueBoxOutput("box_2023", width = 2.5)
-                       ),
- 
+                           valueBoxOutput("box_net_pension", width = 4),  
+                           valueBoxOutput("box_net_opeb", width = 4),
+                           valueBoxOutput("box_total_liability", width = 4)
+                       )
+                       ,
+                       
+                       # Table for total liabilities data
                        DTOutput("totals_table"),
-                       tags$div(style = "margin-top: 20px;", 
-                                downloadButton("download_data", "Download")
+                       tags$div(style = "margin-top: 20px;",
+                                downloadButton("download_data", "Download Data")
                        ),
+                       
+                       # Tabbed panel for different plots
                        tabsetPanel(
                            tabPanel("Net Pension Liability", plotlyOutput("net_pension_plot")),
                            tabPanel("Net OPEB Liability", plotlyOutput("opeb_plot")),
@@ -43,16 +62,12 @@ shinyUI(navbarPage(
                )
         )
     ),
-    # New section for Top 100 School Districts table
+    
+    # Section for Top 100 Entities table
     fluidRow(
         column(12,
-               tags$h3("Top 100 School Districts"),  # Add a header for the new section
-               DTOutput("top100_table")  # Placeholder for the Top 100 table
+               tags$h3("Top 10 Entities"),  
+               DTOutput("top10_table")
         )
     )
-    
-    
-    
-    
-
 ))

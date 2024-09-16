@@ -1,193 +1,124 @@
 library(shiny)
-library(dplyr)
 library(DT)
-library(shinydashboard)
+library(dplyr)
 library(plotly)
-source("charts.R")  
 
 # Define the server logic
 shinyServer(function(input, output, session) {
   
-  # Populate the selectInput choices dynamically
-  observe({
-    updateSelectInput(session, "selected_state", 
-                      choices = unique(state_tot$state.name))
-  })
-  
-  # school district choices based on selected state
-  observe({
-    req(input$selected_state)
-    school_districts <- all_school_districts %>%
-      filter(state.name == input$selected_state) %>%
-      pull(name)
-    updateSelectizeInput(session, "selected_district", 
-                      choices = c("All", school_districts),
-                      server = TRUE)
-  })
-  
-  output$school_district_ui <- renderUI({
-    tags$div(class = "select-input-custom",
-             selectizeInput("selected_district", "Select School District:", 
-                        choices = NULL,
-                        options = list(
-                          placeholder = 'Start typing to search...',
-                          maxOptions = 1000  # Adjust the number of options to display
-                        )
-                        )
-            )
-  })
-  
-  # Filter the data based on the selected state
+  # Reactive function to filter data based on input selections
   filtered_data <- reactive({
-    req(input$selected_state, input$selected_district)
-    if(is.null(input$selected_district) || input$selected_district == "All"){
-      state_tot %>% filter(state.name == input$selected_state)
-    } else{
-      all_school_districts %>% filter(state.name == input$selected_state, 
-                                      name == input$selected_district) %>% 
-        select(-c(name, enrollment_22))
+    data <- all_entities
+    
+    # Apply filters based on user input
+    if (!is.null(input$selected_state) && length(input$selected_state) > 0) {
+      data <- data %>% filter(state.name %in% input$selected_state)
     }
-   
+    if (!is.null(input$selected_entity_type) && length(input$selected_entity_type) > 0) {
+      data <- data %>% filter(category %in% input$selected_entity_type)
+    }
+    if (!is.null(input$selected_year) && length(input$selected_year) > 0) {
+      data <- data %>% filter(year %in% input$selected_year)
+    }
+    
+    return(data)
   })
   
-  # Render the table
+  # Render the summary table
   output$totals_table <- renderDT({
-    datatable(filtered_data(), 
-              options = list(pageLength = 10, order = list(list(1, 'asc'))))
+    data <- filtered_data()
+    datatable(data, options = list(pageLength = 10))
   })
   
-  # net_pension_liability_allyears
-  net_pension_liability_allyears <- reactive({
-    req(input$selected_state)
-    valuebox_data %>%
-      filter(state.name == input$selected_state, 
-             category == "net_pension_liability") %>%
-      pull(`2022`)
+  # Render top 10 entities table
+  output$top10_table <- renderDT({
+    data <- filtered_data() %>%
+      arrange(desc(net_pension_liability)) %>%
+      head(10)
+    datatable(data, options = list(pageLength = 10))
   })
   
-  output$box_2020 <- renderValueBox({
-    valueBox(
-      value = net_pension_liability_allyears(),  
-      subtitle = "NPL 2022",
-      icon = icon("chart-line")
-    )
+  # Reactive function to summarize data for value boxes
+  summary_data <- reactive({
+    data <- filtered_data()
+    
+    # Summarize data by category and year (if year is selected)
+    if (!is.null(input$selected_year) && length(input$selected_year) > 0) {
+      data <- data %>% filter(year %in% input$selected_year)
+    }
+    
+    data %>% 
+      group_by(category) %>%
+      summarize(total_liabilities = sum(total_liabilities, na.rm = TRUE),
+                net_pension_liability = sum(net_pension_liability, na.rm = TRUE),
+                net_pension_assets = sum(net_pension_assets, na.rm = TRUE),
+                netted_net_pension_liability = sum(net_pension_liability - net_pension_assets, na.rm = TRUE),
+                net_opeb_liability = sum(net_opeb_liability, na.rm = TRUE),
+                net_opeb_assets = sum(net_opeb_assets, na.rm = TRUE),
+                netted_net_opeb_liability = sum(net_opeb_liability - net_opeb_assets, na.rm = TRUE))
   })
   
-  # net_opeb_liability all years
-  
-  net_opeb_liability_allyears <- reactive({
-    req(input$selected_state)
-    valuebox_data %>%
-      filter(state.name == input$selected_state, category == "net_opeb_liability") %>%
-      pull(`2022`)
-  })
-  output$box_2021 <- renderValueBox({
-    valueBox(
-      value = net_opeb_liability_allyears(),
-      subtitle = "OPEB Liability 2022",
-      icon = icon("briefcase")
-    )
+  # Render value boxes for net pension liability
+  output$box_net_pension <- renderValueBox({
+    data <- summary_data()
+    
+    valueBox(formatC(sum(data$netted_net_pension_liability), format = "f", big.mark = ",", digits = 2),
+             "Net Pension Liabilities", icon = icon("dollar-sign"), color = "blue")
   })
   
-  # total_liabilities all years
-  
-  total_liabilities_allyears <- reactive({
-    req(input$selected_state)
-    valuebox_data %>%
-      filter(state.name == input$selected_state, category == "total_liabilities") %>%
-      pull(`2022`)
+  # Render value box for net OPEB liability
+  output$box_net_opeb <- renderValueBox({
+    data <- summary_data()
+    
+    valueBox(formatC(sum(data$netted_net_opeb_liability), format = "f", big.mark = ",", digits = 2),
+             "Net OPEB Liabilities", icon = icon("dollar-sign"), color = "green")
   })
   
-  output$box_2022 <- renderValueBox({
-    valueBox(
-      value = total_liabilities_allyears(),
-      subtitle = "Total Liabilities 2022",
-      icon = icon("money-bill")
-    )
+  # Render value box for total liabilities
+  output$box_total_liability <- renderValueBox({
+    data <- summary_data()
+    
+    valueBox(formatC(sum(data$total_liabilities), format = "f", big.mark = ",", digits = 2),
+             "Total Liabilities", icon = icon("dollar-sign"), color = "red")
   })
-
   
-  # Download handler
+  # Plot for Net Pension Liability
+  output$net_pension_plot <- renderPlotly({
+    data <- filtered_data()
+    
+    plot_ly(data, x = ~year, y = ~net_pension_liability, color = ~state.name, type = 'scatter', mode = 'lines+markers') %>%
+      layout(title = "Net Pension Liability Over Time",
+             xaxis = list(title = "Year"), 
+             yaxis = list(title = "Net Pension Liability"))
+  })
+  
+  # Plot for Net OPEB Liability
+  output$opeb_plot <- renderPlotly({
+    data <- filtered_data()
+    
+    plot_ly(data, x = ~year, y = ~net_opeb_liability, color = ~state.name, type = 'scatter', mode = 'lines+markers') %>%
+      layout(title = "Net OPEB Liability Over Time",
+             xaxis = list(title = "Year"), 
+             yaxis = list(title = "Net OPEB Liability"))
+  })
+  
+  # Plot for Total Liabilities
+  output$total_liabilities_plot <- renderPlotly({
+    data <- filtered_data()
+    
+    plot_ly(data, x = ~year, y = ~total_liabilities, color = ~state.name, type = 'scatter', mode = 'lines+markers') %>%
+      layout(title = "Total Liabilities Over Time",
+             xaxis = list(title = "Year"), 
+             yaxis = list(title = "Total Liabilities"))
+  })
+  
+  # Download handler for the data
   output$download_data <- downloadHandler(
     filename = function() {
-      paste("Reason-", Sys.Date(), ".csv", sep="")
+      paste("filtered_data-", Sys.Date(), ".csv", sep = "")
     },
     content = function(file) {
       write.csv(filtered_data(), file, row.names = FALSE)
     }
   )
-  
-  
-  # Render net_pension_plot
-  output$net_pension_plot <- renderPlotly({
-    req(input$selected_state)
-    
-    # Filter the data based on selected state
-    filtered_data <- top10_chart_data %>%
-      filter(state.name == input$selected_state) %>%
-      filter(category == "net_pension_liability") %>%
-      select(name, `2022`)
-    
-    p <- filtered_data %>%
-      ggplot(aes(fct_reorder(name, `2022`), `2022`)) +
-      geom_col(fill = "#55C5E6") +
-      coord_flip() +
-      scale_y_continuous(labels = comma) +
-      labs(x = "", y = "", 
-           title = paste("Top 10 School Districts in ", input$selected_state, "in 2022")) +
-      theme_minimal()
-    
-    ggplotly(p)
-  })
-  
-  # Render the Net OPEB Liability plot
-  output$opeb_plot <- renderPlotly({
-    req(input$selected_state)
-    
-    filtered_data <- top10_chart_data %>%
-      filter(state.name == input$selected_state) %>%
-      filter(category == "net_opeb_liability") %>%
-      select(name, `2022`)
-    
-    p <- filtered_data %>%
-      ggplot(aes(fct_reorder(name, `2022`), `2022`)) +
-      geom_col(fill = "#3690CC") +
-      coord_flip() +
-      scale_y_continuous(labels = comma) +
-      labs(x = "", y = "", 
-           title = paste("Top 10 School Districts in ", input$selected_state, "in 2022")) +
-      theme_minimal()
-    
-    ggplotly(p)
-  })
-  
-  # Total Liabilities plot
-  output$total_liabilities_plot <- renderPlotly({
-    req(input$selected_state)
-    
-    filtered_data <- top10_chart_data %>%
-      filter(state.name == input$selected_state) %>%
-      filter(category == "total_liabilities") %>%
-      select(name, `2022`)
-    
-    p <- filtered_data %>%
-      ggplot(aes(fct_reorder(name, `2022`), `2022`)) +
-      geom_col(fill = "#125E9B") +
-      coord_flip() +
-      scale_y_continuous(labels = comma) +
-      labs(x = "", y = "", 
-           title = paste("Top 10 School Districts in ", input$selected_state, "in 2022")) +
-      theme_minimal()
-    
-    ggplotly(p)
-  })
-  
-  #Top100 sd
-  output$top100_table <- renderDataTable({
-    datatable(top100_sd, 
-              options = list(pageLength = 10, autoWidth = TRUE),  
-              rownames = FALSE)
-  
-
-})
 })
