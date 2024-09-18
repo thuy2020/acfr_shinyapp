@@ -2,11 +2,14 @@ library(shiny)
 library(DT)
 library(dplyr)
 library(plotly)
+library(tidyr)
+library(forcats)
+source("charts.R")
 
 # Define the server logic
 shinyServer(function(input, output, session) {
   
-  # Reactive function to filter data based on input selections
+  # Reactive function to filter data based on input selections for the totals table
   filtered_data <- reactive({
     data <- all_entities
     
@@ -17,18 +20,69 @@ shinyServer(function(input, output, session) {
     if (!is.null(input$selected_entity_type) && length(input$selected_entity_type) > 0) {
       data <- data %>% filter(category %in% input$selected_entity_type)
     }
-    if (!is.null(input$selected_year) && length(input$selected_year) > 0) {
+    
+    # If no year is selected, default to 2022
+    if (is.null(input$selected_year) || length(input$selected_year) == 0) {
+      data <- data %>% filter(year == 2022)
+    } else {
       data <- data %>% filter(year %in% input$selected_year)
     }
     
     return(data)
   })
   
-  # Render the summary table
-  output$totals_table <- renderDT({
+  # Entity table
+  output$entity_table <- renderDT({
     data <- filtered_data()
-    datatable(data, options = list(pageLength = 10))
+    datatable(data, escape = FALSE, options = list(pageLength = 10)) %>% 
+                formatStyle(columns = 5:14,'text-align' = 'right') %>% 
+                formatRound(columns = 5:14, digits = 0)
   })
+  
+  # Reactive function to calculate the summary table data
+  summary_data <- reactive({
+    year_to_filter <- if (is.null(input$selected_year) || length(input$selected_year) == 0) 2022 
+    else input$selected_year
+    
+    d <- all_entities %>% filter(year %in% year_to_filter)
+    summarize_data(d)
+    
+  })
+  
+  # Render the summary table
+  output$summary_table <- renderDT({
+    data <- summary_data()
+    datatable(data, options = list(pageLength = 10)) %>% 
+                formatStyle(columns = 2:5,'text-align' = 'right') %>% 
+                formatRound(columns = 2:5, digits = 0)
+              
+  })
+  
+  output$caption <- renderText({
+    selected_state <- ifelse(length(input$selected_state) == 1, input$selected_state, "all states")
+    selected_year <- ifelse(length(input$selected_year) == 1, input$selected_year, "all years")
+    
+    paste0("Source: Annual comprehensive financial reports for ", selected_state, 
+           " governmental units, fiscal year ", selected_year, ".", 
+           " Note: Net-Net Pension Liability = Net Pension Liability - Net Pension Assets",
+           " Note: Net-Net OPEB Liability = Net OPEB Liability - Net OPEB Assets")
+  })
+  
+  # Download handler for both totals and summary tables in one Excel file
+  output$download_data <- downloadHandler(
+    filename = function() {
+      paste("Reason-ACFR-data-", Sys.Date(), ".xlsx", sep = "")
+    },
+    content = function(file) {
+      # Get the totals data and summary table data
+      entity_data <- filtered_data()
+      summary_data_to_download <- summary_data()  # Use the same data as rendered in the summary_table
+      
+      # Write both dataframes to separate sheets in an Excel file
+      writexl::write_xlsx(list("Entity Table" = entity_data, 
+                               "Summary Table" = summary_data_to_download), path = file)
+    }
+  )
   
   # Render top 10 entities table
   output$top10_table <- renderDT({
@@ -38,87 +92,46 @@ shinyServer(function(input, output, session) {
     datatable(data, options = list(pageLength = 10))
   })
   
-  # Reactive function to summarize data for value boxes
-  summary_data <- reactive({
-    data <- filtered_data()
-    
-    # Summarize data by category and year (if year is selected)
-    if (!is.null(input$selected_year) && length(input$selected_year) > 0) {
-      data <- data %>% filter(year %in% input$selected_year)
-    }
-    
-    data %>% 
-      group_by(category) %>%
-      summarize(total_liabilities = sum(total_liabilities, na.rm = TRUE),
-                net_pension_liability = sum(net_pension_liability, na.rm = TRUE),
-                net_pension_assets = sum(net_pension_assets, na.rm = TRUE),
-                netted_net_pension_liability = sum(net_pension_liability - net_pension_assets, na.rm = TRUE),
-                net_opeb_liability = sum(net_opeb_liability, na.rm = TRUE),
-                net_opeb_assets = sum(net_opeb_assets, na.rm = TRUE),
-                netted_net_opeb_liability = sum(net_opeb_liability - net_opeb_assets, na.rm = TRUE))
-  })
-  
   # Render value boxes for net pension liability
   output$box_net_pension <- renderValueBox({
     data <- summary_data()
     
-    valueBox(formatC(sum(data$netted_net_pension_liability), format = "f", big.mark = ",", digits = 2),
-             "Net Pension Liabilities", icon = icon("dollar-sign"), color = "blue")
+    valueBox(formatC(sum(data$`Net-Net Pension Liability`), 
+                     format = "f", big.mark = ",", digit = 0),
+             "Net Pension Liabily", icon = icon("dollar-sign"))
   })
   
   # Render value box for net OPEB liability
   output$box_net_opeb <- renderValueBox({
     data <- summary_data()
     
-    valueBox(formatC(sum(data$netted_net_opeb_liability), format = "f", big.mark = ",", digits = 2),
-             "Net OPEB Liabilities", icon = icon("dollar-sign"), color = "green")
+    valueBox(formatC(sum(data$`Net-Net OPEB Liability`), 
+                     format = "f", big.mark = ",", digit = 0),
+             "Net OPEB Liability", icon = icon("dollar-sign"))
   })
   
   # Render value box for total liabilities
   output$box_total_liability <- renderValueBox({
     data <- summary_data()
     
-    valueBox(formatC(sum(data$total_liabilities), format = "f", big.mark = ",", digits = 2),
-             "Total Liabilities", icon = icon("dollar-sign"), color = "red")
+    valueBox(formatC(sum(data$`Total Liabilities`), 
+                     format = "f", big.mark = ",", digit = 0),
+             "Total Liabilities", icon = icon("dollar-sign"))
   })
   
-  # Plot for Net Pension Liability
+  # Render the net pension liability plot
   output$net_pension_plot <- renderPlotly({
-    data <- filtered_data()
-    
-    plot_ly(data, x = ~year, y = ~net_pension_liability, color = ~state.name, type = 'scatter', mode = 'lines+markers') %>%
-      layout(title = "Net Pension Liability Over Time",
-             xaxis = list(title = "Year"), 
-             yaxis = list(title = "Net Pension Liability"))
+   ggplotly(p_net_pension_liability)
   })
   
   # Plot for Net OPEB Liability
   output$opeb_plot <- renderPlotly({
-    data <- filtered_data()
-    
-    plot_ly(data, x = ~year, y = ~net_opeb_liability, color = ~state.name, type = 'scatter', mode = 'lines+markers') %>%
-      layout(title = "Net OPEB Liability Over Time",
-             xaxis = list(title = "Year"), 
-             yaxis = list(title = "Net OPEB Liability"))
+    ggplotly(p_net_opeb)
   })
   
   # Plot for Total Liabilities
   output$total_liabilities_plot <- renderPlotly({
-    data <- filtered_data()
-    
-    plot_ly(data, x = ~year, y = ~total_liabilities, color = ~state.name, type = 'scatter', mode = 'lines+markers') %>%
-      layout(title = "Total Liabilities Over Time",
-             xaxis = list(title = "Year"), 
-             yaxis = list(title = "Total Liabilities"))
+    ggplotly(p_total_liabilities)
   })
   
-  # Download handler for the data
-  output$download_data <- downloadHandler(
-    filename = function() {
-      paste("filtered_data-", Sys.Date(), ".csv", sep = "")
-    },
-    content = function(file) {
-      write.csv(filtered_data(), file, row.names = FALSE)
-    }
-  )
 })

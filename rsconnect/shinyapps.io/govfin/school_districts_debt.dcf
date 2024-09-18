@@ -5,7 +5,7 @@ account: govfin
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 12408239
-bundleId: 9057544
+bundleId: 9108903
 url: https://govfin.shinyapps.io/school_districts_debt/
 version: 1
 asMultiple: FALSE

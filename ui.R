@@ -39,19 +39,21 @@ shinyUI(navbarPage(
                    ),
                    
                    mainPanel(
+                       
                        fluidRow(
                            valueBoxOutput("box_net_pension", width = 4),  
                            valueBoxOutput("box_net_opeb", width = 4),
                            valueBoxOutput("box_total_liability", width = 4)
-                       )
-                       ,
-                       
-                       # Table for total liabilities data
-                       DTOutput("totals_table"),
-                       tags$div(style = "margin-top: 20px;",
-                                downloadButton("download_data", "Download Data")
+                       ),
+                       # Tabset panel for different tables
+                       tabsetPanel(
+                           tabPanel("Entity Table", DTOutput("entity_table"), 
+                                    textOutput("caption")),
+                           tabPanel("Summary Table", DTOutput("summary_table"),
+                                    textOutput("caption"))
                        ),
                        
+                       downloadButton("download_data", "Download Data"),
                        # Tabbed panel for different plots
                        tabsetPanel(
                            tabPanel("Net Pension Liability", plotlyOutput("net_pension_plot")),
@@ -63,7 +65,7 @@ shinyUI(navbarPage(
         )
     ),
     
-    # Section for Top 100 Entities table
+    # Section for Top 10 Entities table
     fluidRow(
         column(12,
                tags$h3("Top 10 Entities"),  
