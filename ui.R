@@ -63,7 +63,10 @@ shinyUI(navbarPage(
                                              div(style = "font-size: 20px; font-weight: bold; text-align: center; color: darkblue; margin-top: 20px; margin-bottom: 20px;",
                                                 textOutput("summary_table_title")),
                                              DTOutput("summary_table"),
-                                             textOutput("caption")),
+                                             textOutput("caption"),
+                                             # Add download button under the Summary Table
+                                             div(style = "text-align: center; margin-top: 20px;",
+                                                 downloadButton("download_summary_table", "Download Summary Table"))),
                                     tabPanel("Entity Table", 
                                              div(style = "font-size: 20px; font-weight: bold; text-align: center; color: darkblue; margin-top: 20px; margin-bottom: 20px;",
                                                  textOutput("entity_table_title")),

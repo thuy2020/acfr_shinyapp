@@ -3,7 +3,10 @@ library(DT)
 library(dplyr)
 library(plotly)
 library(tidyr)
-library(forcats)
+library(flextable)
+library(officer)
+library(ggplot2)
+
 source("charts.R")
 
 # Define the server logic
@@ -135,7 +138,6 @@ shinyServer(function(input, output, session) {
   })
   
   
-  
   # Download handler for both totals and summary tables in one Excel file
   output$download_data <- downloadHandler(
     filename = function() {
@@ -152,6 +154,53 @@ shinyServer(function(input, output, session) {
     }
   )
   
+# Summary table
+  
+  format_billions <- function(x) {
+    paste0(round(x / 1e9, 1), " billion")  # Convert to billions and round to 2 decimal places
+  }
+  
+  format_percentage <- function(x) {
+    paste0(round(x, 2), "%")  # Rounds to 2 decimal places and appends "%"
+  }
+  output$download_summary_table <- downloadHandler(
+    filename = function() {
+      paste("Summary_Table_", Sys.Date(), ".docx", sep = "")
+    },
+    content = function(file) {
+      summary_data_to_download <- summary_data() %>%     # Get the filtered summary table data
+        select(-c(`Net-Net Pension & OPEB Liability`, population))
+        
+        # Apply number formatting to billions
+      numeric_cols <- c("Net-Net Pension Liability", "Net-Net OPEB Liability", 
+                        "Total Liabilities")
+      summary_data_to_download[numeric_cols] <- lapply(summary_data_to_download[numeric_cols], format_billions)
+  
+      summary_data_to_download$`Retirement Share of Total Liabilities (%)` <- 
+        format_percentage(summary_data_to_download$`Retirement Share of Total Liabilities (%)`)
+      # Rename columns
+      colnames(summary_data_to_download) <- gsub("Net-Net Pension Liability", "Net Pension Liability", 
+                                                 colnames(summary_data_to_download))
+      colnames(summary_data_to_download) <- gsub("Net-Net OPEB Liability", "Net OPEB Liability", 
+                                                 colnames(summary_data_to_download))
+      colnames(summary_data_to_download) <- gsub("Retirement Share of Total Liabilities \\(\\%\\)", "Pension + OPEB Share of Total", 
+                                                 colnames(summary_data_to_download))  
+      
+      # Convert the dataframe to a flextable 
+      table_ft <- flextable(summary_data_to_download) %>%
+        set_table_properties(layout = "autofit") %>%
+        theme_vanilla() %>%
+        align(align = "center", part = "all") %>%
+        fontsize(size = 12, part = "all") %>%
+        autofit()
+      
+      # Word document 
+      doc <- read_docx()
+      doc <- body_add_par(doc, "Summary Table", style = "heading 1")
+      doc <- body_add_flextable(doc, value = table_ft)
+      print(doc, target = file)
+    }
+  )
 ####Value boxes####
   # value box net pension 
   output$box_net_pension <- renderValueBox({
