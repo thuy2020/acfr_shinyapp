@@ -81,8 +81,8 @@
 }
 
 /* Custom style for the value (the number in the box) */
-.small-box h3 {
-    font-size: 36px; /* Increase the font size for the main value */
+.small-box h2 {
+    font-size: 40px; /* Increase the font size for the main value */
     font-weight: bold; /* Make the font bold */
     color: #fff; /* Set the font color */
 }

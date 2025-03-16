@@ -21,14 +21,38 @@ shinyServer(function(input, output, session) {
       data <- data %>% filter(category %in% input$selected_entity_type)
     }
     
-    # If no year is selected, default to 2022
+    # If no year is selected, default to 2023
     if (is.null(input$selected_year) || length(input$selected_year) == 0) {
-      data <- data %>% filter(year == 2022)
+      data <- data %>% filter(year == 2023)
     } else {
       data <- data %>% filter(year %in% input$selected_year)
     }
-    
     return(data)
+  })
+
+  #Adding dynamic titles for each table with selected filters
+  output$entity_table_title <- renderText({
+    paste("Entity Table - State:", paste(input$selected_state, collapse = ", "),
+          "| Year:", paste(input$selected_year, collapse = ", "),
+          "| Entity Type:", paste(input$selected_entity_type, collapse = ", "))
+  })
+  
+  output$summary_table_title <- renderText({
+    paste("Summary Table - State:", paste(input$selected_state, collapse = ", "), 
+          "| Year:", paste(input$selected_year, collapse = ", "), 
+          "| Entity Type:", paste(input$selected_entity_type, collapse = ", "))
+  })
+  
+  output$population_counties_title <- renderText({
+    "Counties' Population Covered by State | Year: 2023"
+  })
+  
+  output$population_municipalities_title <- renderText({
+    "Municipalities' Population Covered by State | Year: 2023"
+  })
+  
+  output$population_sd_title <- renderText({
+    "School Districts' Students Covered by State | Year: 2023"
   })
   
   # Entity table
@@ -41,11 +65,27 @@ shinyServer(function(input, output, session) {
   
   # Reactive function to calculate the summary table data
   summary_data <- reactive({
-    year_to_filter <- if (is.null(input$selected_year) || length(input$selected_year) == 0) 2022 
+    year_to_filter <- if (is.null(input$selected_year) || length(input$selected_year) == 0) 2023 
     else input$selected_year
     
-    d <- all_entities %>% filter(year %in% year_to_filter)
-    summarize_data(d)
+    d <- filtered_data() %>% 
+      filter(year %in% year_to_filter)
+    
+    # Get the summarized data using the existing function
+    result <- summarize_data(d)
+    
+    # If a single state is selected, incorporate the additional logic
+    if (!is.null(input$selected_state) && length(input$selected_state) == 1) {
+      selected_state <- input$selected_state
+      
+      result <- result %>% 
+        left_join(census_pop_by_category %>% filter(state.name == selected_state), 
+                  by = c("Public Employers")) %>%  
+        mutate(`Population Covered (%)` = round(population / census_population * 100, 2)) %>% 
+        select(-c(state.abb, population, state.name, census_population))
+    }
+    
+    return(result)
     
   })
   
@@ -53,10 +93,36 @@ shinyServer(function(input, output, session) {
   output$summary_table <- renderDT({
     data <- summary_data()
     datatable(data, options = list(pageLength = 10)) %>% 
-                formatStyle(columns = 2:5,'text-align' = 'right') %>% 
-                formatRound(columns = 2:5, digits = 0)
+                formatStyle(columns = 2:6,'text-align' = 'right') %>% 
+                formatRound(columns = 2:6, digits = 0)
               
   })
+  
+  # Render the population_covered table
+  output$population_covered_counties <- renderDT({
+    data <- population_covered_counties
+    datatable(data, options = list(pageLength = 10)) %>% 
+      formatStyle(columns = 2:3,'text-align' = 'right') %>% 
+      formatRound(columns = 2:3, digits = 0)
+    
+  }) 
+  
+  output$population_covered_municipalities <- renderDT({
+    data <- population_covered_municipalities
+    datatable(data, options = list(pageLength = 10)) %>% 
+      formatStyle(columns = 2:3,'text-align' = 'right') %>% 
+      formatRound(columns = 2:3, digits = 0)
+    
+  }) 
+  
+  output$population_covered_sd <- renderDT({
+    data <- population_covered_sd
+    datatable(data, options = list(pageLength = 10)) %>% 
+      formatStyle(columns = 2:3,'text-align' = 'right') %>% 
+      formatRound(columns = 2:3, digits = 0)
+    
+  }) 
+  
   
   output$caption <- renderText({
     selected_state <- ifelse(length(input$selected_state) == 1, input$selected_state, "all states")
@@ -67,6 +133,8 @@ shinyServer(function(input, output, session) {
            " Note: Net-Net Pension Liability = Net Pension Liability - Net Pension Assets",
            " Note: Net-Net OPEB Liability = Net OPEB Liability - Net OPEB Assets")
   })
+  
+  
   
   # Download handler for both totals and summary tables in one Excel file
   output$download_data <- downloadHandler(
@@ -84,41 +152,34 @@ shinyServer(function(input, output, session) {
     }
   )
   
-  # Render top 10 entities table
-  output$top10_table <- renderDT({
-    data <- filtered_data() %>%
-      arrange(desc(net_pension_liability)) %>%
-      head(10)
-    datatable(data, options = list(pageLength = 10))
-  })
-  
-  # Render value boxes for net pension liability
+####Value boxes####
+  # value box net pension 
   output$box_net_pension <- renderValueBox({
-    data <- summary_data()
-    
+    data <- summary_data() %>% slice_tail(n = 1)
     valueBox(formatC(sum(data$`Net-Net Pension Liability`), 
                      format = "f", big.mark = ",", digit = 0),
-             "Net Pension Liabily", icon = icon("dollar-sign"))
+             "Net-Net Pension Liability", icon = icon("money-bill"))
   })
   
-  # Render value box for net OPEB liability
+  # Value box OPEB 
   output$box_net_opeb <- renderValueBox({
-    data <- summary_data()
+    data <- summary_data() %>% slice_tail(n = 1)
     
     valueBox(formatC(sum(data$`Net-Net OPEB Liability`), 
                      format = "f", big.mark = ",", digit = 0),
-             "Net OPEB Liability", icon = icon("dollar-sign"))
+             "Net-Net OPEB Liability", icon = icon("chart-line"))
   })
   
-  # Render value box for total liabilities
+  # Value box total liabilities
   output$box_total_liability <- renderValueBox({
-    data <- summary_data()
+    data <- summary_data()%>% slice_tail(n = 1)
     
     valueBox(formatC(sum(data$`Total Liabilities`), 
                      format = "f", big.mark = ",", digit = 0),
-             "Total Liabilities", icon = icon("dollar-sign"))
+             "Total Liabilities", icon = icon("briefcase"))
   })
   
+####Plot####  
   # Render the net pension liability plot
   output$net_pension_plot <- renderPlotly({
    ggplotly(p_net_pension_liability)
@@ -132,6 +193,15 @@ shinyServer(function(input, output, session) {
   # Plot for Total Liabilities
   output$total_liabilities_plot <- renderPlotly({
     ggplotly(p_total_liabilities)
+  })
+  
+  
+  # Render top 10 entities table
+  output$top10_table <- renderDT({
+    data <- filtered_data() %>%
+      arrange(desc(net_pension_liability)) %>%
+      head(10)
+    datatable(data, escape = FALSE, options = list(pageLength = 10))
   })
   
 })

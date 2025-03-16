@@ -1,0 +1,10 @@
+name: acfr_shinyapp
+title:
+username: reason
+account: reason
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 12757504
+bundleId: 9837519
+url: https://reason.shinyapps.io/acfr_shinyapp/
+version: 1

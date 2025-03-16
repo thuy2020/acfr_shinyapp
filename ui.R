@@ -2,7 +2,7 @@ library(shiny)
 library(DT)
 library(shinydashboard)
 library(plotly)
-library(bs4Dash)
+source("charts.R")
 
 # Define the UI
 shinyUI(navbarPage(
@@ -12,7 +12,16 @@ shinyUI(navbarPage(
         span("Annual Comprehensive Financial Reports by States", class = "main-title")
     ),
     tags$head(
-        tags$link(rel = "stylesheet", type = "text/css", href = "styles.css")
+        tags$link(rel = "stylesheet", type = "text/css", href = "styles.css"),
+        # Custom CSS to add spacing between sections
+        tags$style(HTML("
+      .custom-spacing {
+        margin-top: 30px;  /* Adjust this value to increase/decrease space */
+      }
+      .custom-section-spacing {
+        margin-top: 40px;  /* Extra space between major sections */
+      }
+    "))
     ),
     
     # Main Layout
@@ -39,37 +48,75 @@ shinyUI(navbarPage(
                    ),
                    
                    mainPanel(
+                       # Value Boxes with additional space
+                       fluidRow(class = "custom-section-spacing",  # Adds space before value boxes
+                                valueBoxOutput("box_net_pension", width = 4),  
+                                valueBoxOutput("box_net_opeb", width = 4),
+                                valueBoxOutput("box_total_liability", width = 4)
+                       ),
                        
+                       # Table Section with space after value boxes
+                       fluidRow(class = "custom-section-spacing",
+                                tabsetPanel(
+                                    
+                                    tabPanel("Summary Table", 
+                                             div(style = "font-size: 20px; font-weight: bold; text-align: center; color: darkblue; margin-top: 20px; margin-bottom: 20px;",
+                                                textOutput("summary_table_title")),
+                                             DTOutput("summary_table"),
+                                             textOutput("caption")),
+                                    tabPanel("Entity Table", 
+                                             div(style = "font-size: 20px; font-weight: bold; text-align: center; color: darkblue; margin-top: 20px; margin-bottom: 20px;",
+                                                 textOutput("entity_table_title")),
+                                             DTOutput("entity_table"), 
+                                             textOutput("caption")),
+                                    tabPanel("Counties' Population Covered", 
+                                             div(style = "font-size: 20px; font-weight: bold; text-align: center; color: darkblue; margin-top: 20px; margin-bottom: 20px;",
+                                                 textOutput("population_counties_title")),
+                                             DTOutput("population_covered_counties"),
+                                             textOutput("caption")),
+                                    
+                                    tabPanel("Municipalities' Population Covered", 
+                                             div(style = "font-size: 20px; font-weight: bold; text-align: center; color: darkblue; margin-top: 20px; margin-bottom: 20px;",
+                                                 textOutput("population_municipalities_title")),
+                                             DTOutput("population_covered_municipalities"),
+                                             textOutput("caption")),
+                                    
+                                    tabPanel("SD' Students Covered", 
+                                             div(style = "font-size: 20px; font-weight: bold; text-align: center; color: darkblue; margin-top: 20px; margin-bottom: 20px;",
+                                                 textOutput("population_sd_title")),
+                                             DTOutput("population_covered_sd"),
+                                             textOutput("caption"))
+                                )
+                       ),
+                       
+                       # Space before the download button
+                       fluidRow(class = "custom-spacing",
+                                downloadButton("download_data", "Download Data")
+                       ),
+                       
+                       # Add the new h3 title "National Data"
                        fluidRow(
-                           valueBoxOutput("box_net_pension", width = 4),  
-                           valueBoxOutput("box_net_opeb", width = 4),
-                           valueBoxOutput("box_total_liability", width = 4)
-                       ),
-                       # Tabset panel for different tables
-                       tabsetPanel(
-                           tabPanel("Entity Table", DTOutput("entity_table"), 
-                                    textOutput("caption")),
-                           tabPanel("Summary Table", DTOutput("summary_table"),
-                                    textOutput("caption"))
+                         column(12, tags$h3("National Data for FY 2022", class = "custom-section-spacing"))
                        ),
                        
-                       downloadButton("download_data", "Download Data"),
-                       # Tabbed panel for different plots
-                       tabsetPanel(
-                           tabPanel("Net Pension Liability", plotlyOutput("net_pension_plot")),
-                           tabPanel("Net OPEB Liability", plotlyOutput("opeb_plot")),
-                           tabPanel("Total Liabilities", plotlyOutput("total_liabilities_plot"))
+                       # Plot Section with additional space
+                       fluidRow(class = "custom-section-spacing",
+                                tabsetPanel(
+                                    tabPanel("Net Pension Liability", plotlyOutput("net_pension_plot")),
+                                    tabPanel("Net OPEB Liability", plotlyOutput("opeb_plot")),
+                                    tabPanel("Total Liabilities", plotlyOutput("total_liabilities_plot"))
+                                )
                        )
                    )
                )
         )
     ),
     
-    # Section for Top 10 Entities table
-    fluidRow(
-        column(12,
-               tags$h3("Top 10 Entities"),  
-               DTOutput("top10_table")
-        )
+    # Section for Top 10 Entities table with space
+    fluidRow(class = "custom-section-spacing",
+             column(12,
+                    tags$h3("Top 10 Entities"),  
+                    DTOutput("top10_table")
+             )
     )
 ))
