@@ -60,41 +60,42 @@ shinyUI(navbarPage(
                                 tabsetPanel(
                                     
                                     tabPanel("Summary Table", 
-                                             div(style = "font-size: 20px; font-weight: bold; text-align: center; color: darkblue; margin-top: 20px; margin-bottom: 20px;",
+                                             div(style = "font-size: 20px; font-weight: bold; text-align: center; color: #FF6C30; margin-top: 20px; margin-bottom: 20px;",
                                                 textOutput("summary_table_title")),
                                              DTOutput("summary_table"),
                                              textOutput("caption"),
-                                             # Add download button under the Summary Table
-                                             div(style = "text-align: center; margin-top: 20px;",
-                                                 downloadButton("download_summary_table", "Download Summary Table"))),
+                                             
+                                             ),
                                     tabPanel("Entity Table", 
-                                             div(style = "font-size: 20px; font-weight: bold; text-align: center; color: darkblue; margin-top: 20px; margin-bottom: 20px;",
+                                             div(style = "font-size: 20px; font-weight: bold; text-align: center; color: #FF6C30; margin-top: 20px; margin-bottom: 20px;",
                                                  textOutput("entity_table_title")),
                                              DTOutput("entity_table"), 
                                              textOutput("caption")),
                                     tabPanel("Counties' Population Covered", 
-                                             div(style = "font-size: 20px; font-weight: bold; text-align: center; color: darkblue; margin-top: 20px; margin-bottom: 20px;",
+                                             div(style = "font-size: 20px; font-weight: bold; text-align: center; color: #FF6C30; margin-top: 20px; margin-bottom: 20px;",
                                                  textOutput("population_counties_title")),
                                              DTOutput("population_covered_counties"),
                                              textOutput("caption")),
                                     
                                     tabPanel("Municipalities' Population Covered", 
-                                             div(style = "font-size: 20px; font-weight: bold; text-align: center; color: darkblue; margin-top: 20px; margin-bottom: 20px;",
+                                             div(style = "font-size: 20px; font-weight: bold; text-align: center; color: #FF6C30; margin-top: 20px; margin-bottom: 20px;",
                                                  textOutput("population_municipalities_title")),
                                              DTOutput("population_covered_municipalities"),
                                              textOutput("caption")),
                                     
                                     tabPanel("SD' Students Covered", 
-                                             div(style = "font-size: 20px; font-weight: bold; text-align: center; color: darkblue; margin-top: 20px; margin-bottom: 20px;",
+                                             div(style = "font-size: 20px; font-weight: bold; text-align: center; color: #FF6C30; margin-top: 20px; margin-bottom: 20px;",
                                                  textOutput("population_sd_title")),
                                              DTOutput("population_covered_sd"),
                                              textOutput("caption"))
                                 )
                        ),
                        
-                       # Space before the download button
-                       fluidRow(class = "custom-spacing",
-                                downloadButton("download_data", "Download Data")
+                       #download button
+                       div(
+                         class = "download-button-container",
+                         downloadButton("download_data", "Download All Data", class = "custom-download-button"),
+                         downloadButton("download_summary_table", "Download Summary Table", class = "custom-download-button")
                        ),
                        
                        # Add the new h3 title "National Data"

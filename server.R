@@ -157,12 +157,13 @@ shinyServer(function(input, output, session) {
 # Summary table
   
   format_billions <- function(x) {
-    paste0(round(x / 1e9, 1), " billion")  # Convert to billions and round to 2 decimal places
+    paste0(round(x / 1e9, 1), " billion")  # Convert to billions 
   }
   
   format_percentage <- function(x) {
-    paste0(round(x, 2), "%")  # Rounds to 2 decimal places and appends "%"
+    paste0(round(x, 0), "%")  # appends "%"
   }
+  
   output$download_summary_table <- downloadHandler(
     filename = function() {
       paste("Summary_Table_", Sys.Date(), ".docx", sep = "")

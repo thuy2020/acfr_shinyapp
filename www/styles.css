@@ -35,22 +35,37 @@
     margin-top: 30px;  
 }
 
-#download_data {
-  background-color: #ccc; 
+/* General Download Button Styling */
+.custom-download-button {
+  background-color: #ccc; /* Default gray background */
   color: white; /* White text */
   border: none; /* Remove border */
-  padding: 10px 20px; /* Add some padding */
+  padding: 10px 20px; /* Add padding */
   text-align: center; /* Center the text */
   text-decoration: none; /* Remove underline */
-  display: inline-block; /* Get it to display inline */
-  font-size: 16px; /* Increase font size */
-  margin: 4px 2px; /* Add some margin */
-  cursor: pointer; /* Pointer/hand icon */
+  display: inline-block; /* Display inline */
+  font-size: 12px; /* Font size */
+  font-weight: bold; /* Bold text */
+  margin: 4px 5px; /* Margin between buttons */
+  cursor: pointer; /* Pointer cursor */
   border-radius: 12px; /* Rounded corners */
+  transition: background-color 0.3s ease-in-out; /* Smooth transition */
+  width: 230px; /* Set fixed width to keep both buttons aligned */
+  white-space: nowrap; /* Prevents text from wrapping */
 }
 
-#download_data:hover {
-  background-color: #FF6C30; /*  orange on hover */
+/* Hover Effect */
+.custom-download-button:hover {
+  background-color: #FF6C30; /* Orange on hover */
+  color: white;
+}
+
+/* CONTAINER TO KEEP BUTTONS ON THE SAME LINE */
+.download-button-container {
+  display: flex;
+  justify-content: center; /* Center buttons */
+  gap: 10px; /* Space between buttons */
+  flex-wrap: nowrap; /* Prevents wrapping to a new line */
 }
 
 /* Resetting select input box to default */
