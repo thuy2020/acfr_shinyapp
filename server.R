@@ -12,26 +12,46 @@ source("charts.R")
 # Define the server logic
 shinyServer(function(input, output, session) {
   
-  # Reactive function to filter data based on input selections for the totals table
-  filtered_data <- reactive({
-    data <- all_entities
-    
-    # Apply filters based on user input
-    if (!is.null(input$selected_state) && length(input$selected_state) > 0) {
-      data <- data %>% filter(state.name %in% input$selected_state)
+  filter_data <- function(data, input_state, input_entity, input_year) {
+    if (!is.null(input_state) && length(input_state) > 0) {
+      data <- data %>% filter(state.name %in% input_state)
     }
-    if (!is.null(input$selected_entity_type) && length(input$selected_entity_type) > 0) {
-      data <- data %>% filter(category %in% input$selected_entity_type)
+    if (!is.null(input_entity) && length(input_entity) > 0) {
+      data <- data %>% filter(category %in% input_entity)
     }
-    
-    # If no year is selected, default to 2023
-    if (is.null(input$selected_year) || length(input$selected_year) == 0) {
+    if (is.null(input_year) || length(input_year) == 0) {
       data <- data %>% filter(year == 2023)
     } else {
-      data <- data %>% filter(year %in% input$selected_year)
+      data <- data %>% filter(year %in% input_year)
     }
     return(data)
+  }
+  
+  filtered_data <- reactive({
+    filter_data(all_entities, input$selected_state, input$selected_entity_type, input$selected_year)
   })
+  
+  
+  # # Reactive function to filter data based on input selections for the totals table
+  # filtered_data <- reactive({
+  #   data <- all_entities
+  #   
+  #   # Apply filters based on user input
+  #   if (!is.null(input$selected_state) && length(input$selected_state) > 0) {
+  #     data <- data %>% filter(state.name %in% input$selected_state)
+  #   }
+  #   if (!is.null(input$selected_entity_type) && length(input$selected_entity_type) > 0) {
+  #     data <- data %>% filter(category %in% input$selected_entity_type)
+  #   }
+  #   
+  #   # If no year is selected, default to 2023
+  #   if (is.null(input$selected_year) || length(input$selected_year) == 0) {
+  #     data <- data %>% filter(year == 2023)
+  #   } else {
+  #     data <- data %>% filter(year %in% input$selected_year)
+  #   }
+  #   return(data)
+  # })
 
   #Adding dynamic titles for each table with selected filters
   output$entity_table_title <- renderText({
@@ -93,8 +113,14 @@ shinyServer(function(input, output, session) {
   })
   
   # Render the summary table
+  
   output$summary_table <- renderDT({
-    data <- summary_data()
+    data <- summary_data() %>% 
+      mutate(`Public Employers` = factor(`Public Employers`, 
+                                         levels = c("State", "Counties", "Municipalities", 
+                                                     "School Districts", "Total"))) %>%
+      arrange(`Public Employers`) 
+    
     datatable(data, options = list(pageLength = 10)) %>% 
                 formatStyle(columns = 2:6,'text-align' = 'right') %>% 
                 formatRound(columns = 2:6, digits = 0)
@@ -170,7 +196,9 @@ shinyServer(function(input, output, session) {
     },
     content = function(file) {
       summary_data_to_download <- summary_data() %>%     # Get the filtered summary table data
-        select(-c(`Net-Net Pension & OPEB Liability`, population))
+        select(-c(`Net-Net Pension & OPEB Liability`, population)) %>% 
+        mutate(`Public Employers` = factor(`Public Employers`, levels = c("State", "Counties", "Municipalities", "School Districts", "Total"))) %>%
+        arrange(`Public Employers`)
         
         # Apply number formatting to billions
       numeric_cols <- c("Net-Net Pension Liability", "Net-Net OPEB Liability", 

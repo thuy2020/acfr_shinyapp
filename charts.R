@@ -61,7 +61,7 @@ summarize_data <- function(data) {
 # population_covered table
 
 population_covered <- all_entities %>% 
-  filter(year == 2022) %>% 
+  filter(year == 2023) %>% 
   select(state.name, category, population) %>% 
   group_by(state.name, category) %>% 
   mutate(population_covered = sum(population, na.rm = TRUE)) %>% select(-population) %>% 
@@ -100,7 +100,7 @@ population_covered_sd <- population_covered %>%
 #########
 
 dp <- all_entities %>% 
-filter(year == 2022) %>% 
+filter(year == 2023) %>% 
   group_by(category) %>%
   summarize(total_liabilities = sum(total_liabilities, na.rm = TRUE),
             # net_net pension
@@ -120,7 +120,7 @@ p_net_pension_liability <- dp %>%
   coord_flip() +
   theme_minimal() +
   labs(x = "", y = "", 
-       title = "Nationwide Net-Net Pension Liability in FY 2022",
+       title = "Nationwide Net-Net Pension Liability in FY 2023",
        caption = "Note: Net-Net Pension = Net Pension Liability - Net Pension Assets") +
   scale_y_continuous(labels = scales::label_number(scale_cut = scales::cut_short_scale(), 
                                                    accuracy = 1))
@@ -133,10 +133,10 @@ p_net_opeb <- dp %>%
   coord_flip() +
   theme_minimal() +
   labs(x = "", y = "", 
-       title = "Nationwide Net-Net OPEP FY 2022", 
+       title = "Nationwide Net-Net OPEP FY 2023", 
        caption = "Note: Net-Net OPEP = Net OPEP Liability - Net OPEB Assets") +
   scale_y_continuous(labels = scales::label_number(scale_cut = scales::cut_short_scale(), 
-                                                   accuracy = 1))
+                                                   accuracy = 1)) 
 
 
 p_total_liabilities <- dp %>% 
@@ -146,7 +146,7 @@ p_total_liabilities <- dp %>%
   coord_flip() +
   theme_minimal() +
   labs(x = "", y = "", 
-       title = "Nationwide Total Liabilities FY 2022") +
+       title = "Nationwide Total Liabilities FY 2023") +
   scale_y_continuous(labels = scales::label_number(scale_cut = scales::cut_short_scale(), 
-                                                   accuracy = 1))
+                                                   accuracy = 1)) 
 
